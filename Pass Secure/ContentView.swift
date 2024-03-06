@@ -15,13 +15,19 @@ struct ContentView: View {
     @State private var isShowingItemSheet = false
     @Query()
     var pcrecords: [PCRecord]
+    static var myexporting = ExportContent(name: "", login: "", pass: "")
     @State private var pcrecordToEdit: PCRecord?
     @State private var text = "" //for error message
     @State private var isUnlocked = false //indicate authentication status
     @State private var showAlert = false //user aleart for unsucessful authentication
     @State private var failMsg = false //reminder message to user
     @State private var isLogout = false //indicate logout status
-        
+    @State private var isExport = false //indicate logout status
+    private let fname = NSHomeDirectory() + "/Documents/test.txt"
+    static var defaultText: String =  "this is it"
+    
+    
+    
     init() { //configure navigation bar title style
         let navBarAppearance = UINavigationBarAppearance()
         navBarAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor(red: 0.86, green: 0.24, blue: 0.00, alpha: 1.00), .font: UIFont(name: "ArialRoundedMTBold", size: 30)!]
@@ -34,7 +40,7 @@ struct ContentView: View {
         UINavigationBar.appearance().scrollEdgeAppearance = navBarAppearance
         UINavigationBar.appearance().compactAppearance = navBarAppearance
     }
-        
+    
     var body: some View {
         NavigationStack {
             if isUnlocked {
@@ -46,15 +52,19 @@ struct ContentView: View {
                                 .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
                             Spacer()
                             Spacer()
+                    
                             Text ("Login")
                                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                                 .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
                         }
                     }
                     
-                    ForEach(pcrecords) { pcrecord in
+                    ForEach(pcrecords) { pcrecord in //MARK: for loop
+                        
                         if pcrecord.name.contains(text) || text.isEmpty
                         {
+                           // let wtf = exportRecord(pcrecord: pcrecord)
+                     //
                             PCRecordCell(pcrecord: pcrecord)
                                 .onTapGesture {
                                     pcrecordToEdit = pcrecord
@@ -68,9 +78,13 @@ struct ContentView: View {
                     }
                 }
                 .searchable(text: $text, prompt: "Search Name")
-                .navigationTitle("PassVault")
+                .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
+                
+                
+                
+                
                 .sheet(item: $pcrecordToEdit) { pcrecord in
                     UpdatePCRecordSheet(pcrecord: pcrecord, originalName: pcrecord.name, originalLogin: pcrecord.login, originalPass: pcrecord.pass)
                 }
@@ -106,6 +120,25 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
+                
+                Button("Export"){ //MARK: export
+                    
+                    let temp = testcall()
+                    temp.testout()
+                    do {
+                        try
+                        String("Adads").write(
+                            toFile: fname,
+                            atomically: true,
+                            encoding: .utf8
+                        )
+                    }
+                    catch {
+                        print (error)
+                    }
+                }
+                ShareLink(item: URL(filePath: fname))
+                Spacer()
             } // the end of content protected by authentication
             
             else
@@ -136,7 +169,7 @@ struct ContentView: View {
                     Text("You've been logged out")
                         .font(.title)
                         .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
-                    Text("\nPlease remember to close the app")
+                    Text("\nPlease remember to close the app for security reason")
                         .font(.system(size: 12, weight: .light, design: .monospaced))
                         .foregroundColor(Color.gray)
                 }
@@ -151,6 +184,8 @@ struct ContentView: View {
             )
         }
     }
+    
+
     
     func authenticate() {
         let context = LAContext()
@@ -229,6 +264,8 @@ struct ContentView: View {
             // Passcode authentication not possible
         }
     }
+  
+    
 }
 
 #Preview {
@@ -238,10 +275,47 @@ struct ContentView: View {
 }
 
 
+struct exportRecord {
+    let pcrecord: PCRecord
+    var temp: String // Define temp as a property of type String
+    var temp2: String = ""
+
+    init(pcrecord: PCRecord) {
+        self.pcrecord = pcrecord
+        self.temp = pcrecord.login // Initialize temp with the value of pcrecord.login
+        self.temp2 += self.temp
+            printout()
+    }
+    
+    func printout()
+    {
+               
+        print(self.temp+self.temp2)
+    }
+}
+
+struct testcall {
+    @Environment(\.modelContext) var context
+    @Query()
+    var pcrecords: [PCRecord]
+    
+        
+    func testout(){
+        
+        ForEach(pcrecords) { pcrecord in //MARK: for loop
+        Text(pcrecord.login)
+        }
+    }
+    
+}
+
+
 
 struct PCRecordCell: View {
     let pcrecord: PCRecord
+       
     var body: some View {
+       
         HStack {
             Text(pcrecord.name)
                 .font(.system(size: 16, weight: .bold, design: .monospaced))
@@ -249,7 +323,15 @@ struct PCRecordCell: View {
             Spacer()
             Text(pcrecord.login)
                 .font(.system(size: 14, weight: .light, design: .default))
+            let www = exporting()
         }
+    }
+    
+    func exporting()
+    {
+        print(pcrecord.login)
+       // myexporting.login = pcrecord.login
+        
     }
 }
 

@@ -10,12 +10,13 @@ import SwiftUI
 import SwiftData
 import LocalAuthentication
 
+
 struct ContentView: View {
     @Environment(\.modelContext) var context
     @State private var isShowingItemSheet = false
     @Query()
     var pcrecords: [PCRecord]
-    static var myexporting = ExportContent(name: "", login: "", pass: "")
+   // static var myexporting = ExportContent(name: "", login: "", pass: "")
     @State private var pcrecordToEdit: PCRecord?
     @State private var text = "" //for error message
     @State private var isUnlocked = false //indicate authentication status
@@ -23,7 +24,9 @@ struct ContentView: View {
     @State private var failMsg = false //reminder message to user
     @State private var isLogout = false //indicate logout status
     @State private var isExport = false //indicate logout status
-    private let fname = NSHomeDirectory() + "/Documents/test.txt"
+    private let fname = NSHomeDirectory() + "/Documents/abcdedf.txt"
+    
+  //  private let fname =  "\(URL.documentsDirectory) + /Documents/message.txt"
     static var defaultText: String =  "this is it"
     
     
@@ -65,6 +68,7 @@ struct ContentView: View {
                         {
                            // let wtf = exportRecord(pcrecord: pcrecord)
                      //
+                           // let wtf = myexporting.jointo(name: pcrecord.name)
                             PCRecordCell(pcrecord: pcrecord)
                                 .onTapGesture {
                                     pcrecordToEdit = pcrecord
@@ -81,6 +85,12 @@ struct ContentView: View {
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
+                .sheet(isPresented: $isExport)
+                {
+                    ActivityView(activityItems: [ExportContent.myshare.ExportRecord])
+                    
+                    
+                }
                 
                 
                 
@@ -123,15 +133,52 @@ struct ContentView: View {
                 
                 Button("Export"){ //MARK: export
                     
-                    let temp = testcall()
-                    temp.testout()
+                    
+                /*    let csvData = "Column 1,Column 2,Column 3\nRow 1,Cell 1,Cell 2\nRow 2,Cell 3,Cell 4"
+
+                    // Create a file manager
+                    let fileManager = FileManager.default
+
+                    // Create a file URL for the CSV file
+                    let fileURL = URL(fileURLWithPath: fname)
+
+                    // Write the CSV data to the file
+                    do {
+                        try csvData.write(to: fileURL, atomically: true, encoding: .utf8)
+                    } catch {
+                        print("Error writing CSV data to file: \(error)")
+                    }*/
+                    
+                    
+                   // isExport = true
+                    
+                                                          
+                 
+
+                    
+                    
+                    
+                    /*let fileName = "myFileName.txt" // Your File Name
+                    var filePath = "" // Your file path
+                    let dirs : [String] = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.allDomainsMask, true)
+
+                    if dirs.count > 0 {
+                       let dir = dirs[0] //documents directory
+                       filePath = dir.appending("/" + fileName)
+                       print("Local path = \(filePath)")
+                    } else {
+                       print("Could not find local directory to store file")
+                    }*/
+                    
                     do {
                         try
-                        String("Adads").write(
+                       
+                        String(ExportContent.myshare.ExportRecord).write(
                             toFile: fname,
                             atomically: true,
                             encoding: .utf8
                         )
+                        print ("file created successfully")
                     }
                     catch {
                         print (error)
@@ -313,6 +360,8 @@ struct testcall {
 
 struct PCRecordCell: View {
     let pcrecord: PCRecord
+    
+   
        
     var body: some View {
        
@@ -320,17 +369,26 @@ struct PCRecordCell: View {
             Text(pcrecord.name)
                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                 .foregroundColor(Color.gray)
+           
             Spacer()
             Text(pcrecord.login)
                 .font(.system(size: 14, weight: .light, design: .default))
             let www = exporting()
+           
         }
     }
     
     func exporting()
     {
         print(pcrecord.login)
-       // myexporting.login = pcrecord.login
+       
+        ExportContent.myshare.ExportRecord += pcrecord.name + ", "
+        ExportContent.myshare.ExportRecord += pcrecord.login + ", "
+        ExportContent.myshare.ExportRecord += pcrecord.pass + "\n"
+        // myexporting.login = pcrecord.login
+        ///print("wtf \(ExportContent.myshare.name = "fdsafd")")
+        //ExportContent.myshare.name = "zzzzz"
+        //print("wtf2 \(ExportContent.myshare.name)")
         
     }
 }

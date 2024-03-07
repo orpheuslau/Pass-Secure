@@ -8,15 +8,13 @@
 import Foundation
 
 class ExportContent {
+       
+    var ExportRecord: String = ""
     
-    var name = ""
-    var login = ""
-    var pass = ""
+    static let myshare = ExportContent(ExportRecord: "NAME, LOGIN, PASS\n")
     
-    init(name: String, login: String, pass: String) {
-        self.name = name
-        self.login = login
-        self.pass = pass
+    init(ExportRecord: String) {
+        self.ExportRecord = ExportRecord
     }
     
     

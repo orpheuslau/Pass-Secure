@@ -2,7 +2,7 @@
 //
 //
 //
-//  swiftdata related code is inspired by example "SwiftDataExample" by Sean Allen on 9/27/23
+//  
 
 
 import Foundation

@@ -1,17 +1,16 @@
 {
   "images" : [
     {
-      "filename" : "app_icon_passcode_vault_in_metal_style-Photoroom.png-Photoroom 1.png",
+      "filename" : "256.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "app_icon_passcode_vault_in_metal_style-Photoroom.png-Photoroom 2.png",
+      "filename" : "120.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "app_icon_passcode_vault_in_metal_style-Photoroom.png-Photoroom.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

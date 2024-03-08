@@ -3,8 +3,7 @@
 //
 //
 //
-//  swiftdata related code is inspired by example "SwiftDataExample" by Sean Allen on 9/27/23
-
+//  
 import SwiftUI
 import SwiftData
 
@@ -15,7 +14,6 @@ struct PassVault: App {
         let schema = Schema([PCRecord.self])
         let config = ModelConfiguration(cloudKitDatabase: .private("iCloud.dev.orpheuslau"))
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
         let container = try! ModelContainer(for: schema, configurations: [modelConfiguration])
         return container
     }()

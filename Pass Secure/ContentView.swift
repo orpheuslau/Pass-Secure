@@ -2,34 +2,27 @@
 //  ContentView.swift
 //
 //
-//  swiftdata related code is inspired by example "SwiftDataExample" by Sean Allen on 9/27/23
-//  biometic authenticaion related code is inspired by Paul Hudson
-//  passcode authenticaion related code is inspired from web information
 
 import SwiftUI
 import SwiftData
 import LocalAuthentication
 
-
 struct ContentView: View {
+    @State private var timer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
+    @State private var loginTime: Date?
     @Environment(\.modelContext) var context
     @State private var isShowingItemSheet = false
-    @Query()
-    var pcrecords: [PCRecord]
-   // static var myexporting = ExportContent(name: "", login: "", pass: "")
+    @Query(sort: \PCRecord.name, order: .forward)var pcrecords: [PCRecord]
     @State private var pcrecordToEdit: PCRecord?
+    @State private var pcrecordToExport: PCRecord?
     @State private var text = "" //for error message
     @State private var isUnlocked = false //indicate authentication status
     @State private var showAlert = false //user aleart for unsucessful authentication
+    @State private var showTimeOut = false //user aleart for unsucessful authentication
     @State private var failMsg = false //reminder message to user
-    @State private var isLogout = false //indicate logout status
-    @State private var isExport = false //indicate logout status
-    private let fname = NSHomeDirectory() + "/Documents/abcdedf.txt"
-    
-  //  private let fname =  "\(URL.documentsDirectory) + /Documents/message.txt"
-    static var defaultText: String =  "this is it"
-    
-    
+    @State private var isExport = false //indicate export request
+    @State private var isExportConfirm = false //indicate export confirmation status
+    private let fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
     
     init() { //configure navigation bar title style
         let navBarAppearance = UINavigationBarAppearance()
@@ -55,7 +48,7 @@ struct ContentView: View {
                                 .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
                             Spacer()
                             Spacer()
-                    
+                            
                             Text ("Login")
                                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                                 .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
@@ -63,12 +56,8 @@ struct ContentView: View {
                     }
                     
                     ForEach(pcrecords) { pcrecord in //MARK: for loop
-                        
                         if pcrecord.name.contains(text) || text.isEmpty
                         {
-                           // let wtf = exportRecord(pcrecord: pcrecord)
-                     //
-                           // let wtf = myexporting.jointo(name: pcrecord.name)
                             PCRecordCell(pcrecord: pcrecord)
                                 .onTapGesture {
                                     pcrecordToEdit = pcrecord
@@ -85,28 +74,20 @@ struct ContentView: View {
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
-                .sheet(isPresented: $isExport)
+                .sheet(isPresented: $isExportConfirm) //MARK: activity sheet pop up
                 {
-                    ActivityView(activityItems: [ExportContent.myshare.ExportRecord])
-                    
-                    
+                    ActivityView(activityItems: [URL(filePath: fname)]) //user to select how to save/handle the exported file
                 }
-                
-                
-                
-                
                 .sheet(item: $pcrecordToEdit) { pcrecord in
                     UpdatePCRecordSheet(pcrecord: pcrecord, originalName: pcrecord.name, originalLogin: pcrecord.login, originalPass: pcrecord.pass)
                 }
                 .toolbar {
                     if !pcrecords.isEmpty {
-                        
                         Button("Add Passcode", systemImage: "plus", role: .destructive) {
                             isShowingItemSheet = true
                         }
                     }
                 }
-                
                 .overlay {
                     if pcrecords.isEmpty {
                         ContentUnavailableView(label: {
@@ -119,73 +100,35 @@ struct ContentView: View {
                         .offset(y: -60)
                     }
                 }
-                Button(action: {
-                    isUnlocked = false // remove protected content and reset authentication status
-                    isLogout = true // logout status
-                }) {
-                    Text("Logout")
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                HStack
+                {
+                    Button(action: { //MARK: push content to txt file
+                        for pcrecord in pcrecords {
+                            let temp = ExportToTxT(pcrecord: pcrecord)
+                            _=temp
+                        }
+                        
+                        do {
+                            try
+                            String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
+                                toFile: fname,
+                                atomically: true,
+                                encoding: .utf8
+                            )
+                            print ("file created successfully")
+                        }
+                        catch {
+                            print (error)
+                        }
+                        ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
+                        isExport = true
+                    }) {Text("Export")
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .padding()
+                            .background(Color.red)
+                            .foregroundColor(.white)
+                        .cornerRadius(10)}
                 }
-                
-                Button("Export"){ //MARK: export
-                    
-                    
-                /*    let csvData = "Column 1,Column 2,Column 3\nRow 1,Cell 1,Cell 2\nRow 2,Cell 3,Cell 4"
-
-                    // Create a file manager
-                    let fileManager = FileManager.default
-
-                    // Create a file URL for the CSV file
-                    let fileURL = URL(fileURLWithPath: fname)
-
-                    // Write the CSV data to the file
-                    do {
-                        try csvData.write(to: fileURL, atomically: true, encoding: .utf8)
-                    } catch {
-                        print("Error writing CSV data to file: \(error)")
-                    }*/
-                    
-                    
-                   // isExport = true
-                    
-                                                          
-                 
-
-                    
-                    
-                    
-                    /*let fileName = "myFileName.txt" // Your File Name
-                    var filePath = "" // Your file path
-                    let dirs : [String] = NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.documentDirectory, FileManager.SearchPathDomainMask.allDomainsMask, true)
-
-                    if dirs.count > 0 {
-                       let dir = dirs[0] //documents directory
-                       filePath = dir.appending("/" + fileName)
-                       print("Local path = \(filePath)")
-                    } else {
-                       print("Could not find local directory to store file")
-                    }*/
-                    
-                    do {
-                        try
-                       
-                        String(ExportContent.myshare.ExportRecord).write(
-                            toFile: fname,
-                            atomically: true,
-                            encoding: .utf8
-                        )
-                        print ("file created successfully")
-                    }
-                    catch {
-                        print (error)
-                    }
-                }
-                ShareLink(item: URL(filePath: fname))
-                Spacer()
             } // the end of content protected by authentication
             
             else
@@ -193,10 +136,10 @@ struct ContentView: View {
                 if failMsg
                 {
                     Spacer()
-                    Image("logo") // Replace "imageName" with the name of your image asset
-                                   .resizable()
-                                   .aspectRatio(contentMode: .fit)
-                                   .frame(width: 100, height: 100)
+                    Image("logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
                     Text("Unable to authenticate")
                         .font(.title)
                         .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
@@ -206,22 +149,22 @@ struct ContentView: View {
                     Spacer()
                     Spacer()
                 }
-                
-                if isLogout
+                if showTimeOut
                 {
-                    Image("logo") // Replace "imageName" with the name of your image asset
-                                   .resizable()
-                                   .aspectRatio(contentMode: .fit)
-                                   .frame(width: 100, height: 100)
-                    Text("You've been logged out")
+                    Image("logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
+                    Text("Session TimeOut")
                         .font(.title)
                         .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
-                    Text("\nPlease remember to close the app for security reason")
+                    Text("\nPlease remember to close the app")
                         .font(.system(size: 12, weight: .light, design: .monospaced))
                         .foregroundColor(Color.gray)
                 }
             }
         }
+        .onReceive(timer) { _ in calculateUsageTime()}
         .onAppear(perform: authenticate) //authentication once view is loaded
         .alert(isPresented: $showAlert) {
             Alert( //user alert of failed authentication
@@ -230,11 +173,19 @@ struct ContentView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        
+        .alert(isPresented: $isExport) {
+            Alert(title: Text("Alert"), message: Text("Content will be exported to a plain CSV file"),
+                  primaryButton: .cancel(Text("Cancel")) {
+            },
+                  secondaryButton: .default(Text("OK")) {
+                isExportConfirm = true
+            }
+            )
+        }
     }
     
-
-    
-    func authenticate() {
+    func authenticate() { //perform biometric authentication
         let context = LAContext()
         var error: NSError?
         
@@ -248,6 +199,7 @@ struct ContentView: View {
                 if success {
                     // Authenticated successfully
                     isUnlocked = true
+                    loginTime = Date() // record login time
                 } else {
                     // Check for fallback mechanism (passcode authentication)
                     if let error = authenticationError as NSError?,
@@ -277,6 +229,19 @@ struct ContentView: View {
         }
     }
     
+    func calculateUsageTime() {
+        guard let loginTime = loginTime else { return }
+        
+        let now = Date()
+        let useageTime = loginTime.distance(to: now) //calculate the time of use
+        if Int(useageTime) > 300 //set session time of 5 mins, in second
+        {
+            showTimeOut = true //pop up the alert message
+            isUnlocked = false // remove protected content and reset authentication status
+            timer.upstream.connect().cancel() // stop the timer
+        }
+    }
+    
     func authenticateWithPasscode() {
         // Prompt the user to enter their device passcode
         let context = LAContext()
@@ -287,6 +252,7 @@ struct ContentView: View {
                 if success {
                     // Authenticated successfully
                     isUnlocked = true
+                    loginTime = Date()
                 } else {
                     // Check for cancellation
                     if let error = authenticationError as NSError?,
@@ -296,7 +262,6 @@ struct ContentView: View {
                         print("Authentication cancelled by the user")
                         showAlert = true
                         failMsg = true
-                        
                     } else {
                         // Authentication failed
                         showAlert = true
@@ -311,93 +276,45 @@ struct ContentView: View {
             // Passcode authentication not possible
         }
     }
-  
-    
 }
 
 #Preview {
-   // ContentView()
     ContentView()
-        
+        .modelContainer(for: PCRecord.self)
 }
 
-
-struct exportRecord {
+struct ExportToTxT
+{
     let pcrecord: PCRecord
-    var temp: String // Define temp as a property of type String
-    var temp2: String = ""
-
-    init(pcrecord: PCRecord) {
+    init(pcrecord: PCRecord){
         self.pcrecord = pcrecord
-        self.temp = pcrecord.login // Initialize temp with the value of pcrecord.login
-        self.temp2 += self.temp
-            printout()
+        exporting()
     }
     
-    func printout()
-    {
-               
-        print(self.temp+self.temp2)
+    func exporting() -> Void{ //consolidate stored data into a string
+        ExportContent.myshare.ExportRecord += pcrecord.name + ", "
+        ExportContent.myshare.ExportRecord += pcrecord.login + ", "
+        ExportContent.myshare.ExportRecord += pcrecord.pass + "\n"
     }
 }
-
-struct testcall {
-    @Environment(\.modelContext) var context
-    @Query()
-    var pcrecords: [PCRecord]
-    
-        
-    func testout(){
-        
-        ForEach(pcrecords) { pcrecord in //MARK: for loop
-        Text(pcrecord.login)
-        }
-    }
-    
-}
-
-
 
 struct PCRecordCell: View {
     let pcrecord: PCRecord
-    
-   
-       
     var body: some View {
-       
         HStack {
             Text(pcrecord.name)
                 .font(.system(size: 16, weight: .bold, design: .monospaced))
                 .foregroundColor(Color.gray)
-           
             Spacer()
             Text(pcrecord.login)
                 .font(.system(size: 14, weight: .light, design: .default))
-            let www = exporting()
-           
         }
     }
-    
-    func exporting()
-    {
-        print(pcrecord.login)
-       
-        ExportContent.myshare.ExportRecord += pcrecord.name + ", "
-        ExportContent.myshare.ExportRecord += pcrecord.login + ", "
-        ExportContent.myshare.ExportRecord += pcrecord.pass + "\n"
-        // myexporting.login = pcrecord.login
-        ///print("wtf \(ExportContent.myshare.name = "fdsafd")")
-        //ExportContent.myshare.name = "zzzzz"
-        //print("wtf2 \(ExportContent.myshare.name)")
-        
-    }
 }
-
 
 struct AddPCRecordSheet: View {
     @Environment(\.modelContext) var context
     @Environment(\.dismiss) private var dismiss
-    
     @State private var name: String = ""
     @State private var login: String = ""
     @State private var pass: String = ""
@@ -467,7 +384,6 @@ struct UpdatePCRecordSheet: View {
             .navigationTitle("Update Passcode")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button("Undo") {
                         undoChange() //reset to original value

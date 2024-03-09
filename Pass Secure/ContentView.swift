@@ -6,6 +6,7 @@
 import SwiftUI
 import SwiftData
 import LocalAuthentication
+import PDFKit
 
 struct ContentView: View {
     @State private var timer = Timer.publish(every: 10, on: .main, in: .common).autoconnect()
@@ -22,7 +23,10 @@ struct ContentView: View {
     @State private var failMsg = false //reminder message to user
     @State private var isExport = false //indicate export request
     @State private var isExportConfirm = false //indicate export confirmation status
-    private let fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+    //private let fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+    private let fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
+   
+    
     
     init() { //configure navigation bar title style
         let navBarAppearance = UINavigationBarAppearance()
@@ -40,6 +44,17 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             if isUnlocked {
+                
+                let filePath = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
+                let success = write(toFile: filePath)
+
+                if success {
+                    Text("PDF document successfully written to file: \(filePath)")
+                } else {
+                    Text("Failed to write PDF document to file: \(filePath)")
+                }
+            
+                
                 List {
                     if !pcrecords.isEmpty {
                         HStack{
@@ -184,6 +199,100 @@ struct ContentView: View {
             )
         }
     }
+    
+    //func createPasswordProtectedPDF() {
+    
+    
+    
+    private func generatePDF() -> Data {
+            
+            let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: 842)) // A4 paper size
+            
+            let data = pdfRenderer.pdfData { context in
+                
+                context.beginPage()
+                
+                let attributes = [
+                    NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 72)
+                ]
+                // adding text to pdf
+                let text = "I'm a PDF!"
+                text.draw(at: CGPoint(x: 20, y: 50), withAttributes: attributes)
+                
+                // adding image to pdf from assets
+                // add an image to xcode assets and rename this.
+                let appleLogo = UIImage.init(named: "apple")
+                let appleLogoRect = CGRect(x: 20, y: 150, width: 400, height: 350)
+                appleLogo!.draw(in: appleLogoRect)
+                
+                // adding image from SF Symbols
+                let globeIcon = UIImage(systemName: "globe")
+                let globeIconRect = CGRect(x: 150, y: 550, width: 100, height: 100)
+                globeIcon!.draw(in: globeIconRect)
+                
+            }
+            
+            return data
+            
+        }
+    
+    
+ 
+    func write(toFile path: String, withOptions options: [PDFDocumentWriteOption: Any]? = nil) -> Bool {
+            // Create a new PDF document
+            
+
+        let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: 842)) // A4 paper size
+        
+        let data = pdfRenderer.pdfData { context in
+            
+            context.beginPage()
+            
+            let attributes = [
+                NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 72)
+            ]
+            // adding text to pdf
+            let text = "I'm a PDF!"
+            text.draw(at: CGPoint(x: 20, y: 50), withAttributes: attributes)
+            
+            // adding image to pdf from assets
+            // add an image to xcode assets and rename this.
+           /* let appleLogo = UIImage.init(named: "apple")
+            let appleLogoRect = CGRect(x: 20, y: 150, width: 400, height: 350)
+            appleLogo!.draw(in: appleLogoRect)
+            
+            // adding image from SF Symbols
+            let globeIcon = UIImage(systemName: "globe")
+            let globeIconRect = CGRect(x: 150, y: 550, width: 100, height: 100)
+            globeIcon!.draw(in: globeIconRect)*/
+            
+        }
+        
+        
+        guard let pdfDocument = PDFDocument(data: data)
+        else {
+            print("Failed to create PDF document")
+            return false
+        }
+     
+    
+    
+            // Add content to the PDF document (e.g., pages, annotations, etc.)
+
+            // Write the PDF document to the specified file path
+            do {
+                try pdfDocument.write(to: URL(fileURLWithPath: path), withOptions: [PDFDocumentWriteOption.userPasswordOption : "pwd",
+                                                                                    PDFDocumentWriteOption.ownerPasswordOption : "pwd"])
+                return true
+            } catch {
+                print("Error writing PDF document: \(error.localizedDescription)")
+                return false
+            }
+        }
+        
+      
+  //  }
+    
     
     func authenticate() { //perform biometric authentication
         let context = LAContext()

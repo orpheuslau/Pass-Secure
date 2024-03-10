@@ -8,10 +8,12 @@ import Foundation
 
 class ExportContent {
     var ExportRecord: String = ""
-    static let myshare = ExportContent(ExportRecord: "NAME, LOGIN, PASS\n")
+    var RecordCount: Int = 0
+    static let myshare = ExportContent(ExportRecord: "NAME, LOGIN, PASS\n", RecordCount: 0)
     
-    init(ExportRecord: String) {
+    init(ExportRecord: String, RecordCount: Int) {
         self.ExportRecord = ExportRecord
-    }        
+        self.RecordCount = RecordCount
+    }
 }
 

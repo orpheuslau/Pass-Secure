@@ -25,6 +25,7 @@ struct ContentView: View {
     @State private var isExportConfirmcsv = false //indicate export confirmation status
     @State private var isExportpdf = false //indicate export request
     @State private var isExportConfirmpdf = false //indicate export confirmation status
+    @State private var BCount = 0
     private let fnamecsv = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
     private let fnamepdf = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
    
@@ -128,70 +129,64 @@ struct ContentView: View {
                         
                        // ToolbarItem(placement: .navigationBarLeading) {
                                                 Menu {
-                                                    Button("Export (csv)") {
-                                                        // Perform action for Option 1
-                                                        print("Option 1 tapped")
-                                                        
-                                                        
-                                                        //MARK: push content to txt file
-                                                        for pcrecord in pcrecords {
-                                                            let temp = ExportToTxT(pcrecord: pcrecord)
-                                                            _=temp
-                                                        }
-                                                        
-                                                        do {
-                                                            try
-                                                            String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
-                                                                toFile: fnamecsv,
-                                                                atomically: true,
-                                                                encoding: .utf8
-                                                            )
-                                                            print ("file created successfully")
-                                                        }
-                                                        catch {
-                                                            print (error)
-                                                        }
-                                                       // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
-                                                       // ExportContent.myshare.RecordCount = 0
-                                                        isExportcsv = true
-                                                        
-                                                    }
                                                     
-                                                    Button("Export (encrypted pdf)") {
-                                                     
-                                                        //MARK: push content to txt file
-                                                        for pcrecord in pcrecords {
-                                                            let temp = ExportToTxT(pcrecord: pcrecord)
-                                                            _=temp
-                                                        }
+                                                    Button{
+                                                            //MARK: push content to txt file
+                                                            for pcrecord in pcrecords {
+                                                                let temp = ExportToTxT(pcrecord: pcrecord)
+                                                                _=temp
+                                                            }
+                                                            
+                                                            do {
+                                                                try
+                                                                String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
+                                                                    toFile: fnamepdf,
+                                                                    atomically: true,
+                                                                    encoding: .utf8
+                                                                )
+                                                                print ("file created successfully")
+                                                            }
+                                                            catch {
+                                                                print (error)
+                                                            }
+                                                            // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
+                                                            isExportpdf = true
                                                         
-                                                        do {
-                                                            try
-                                                            String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
-                                                                toFile: fnamepdf,
-                                                                atomically: true,
-                                                                encoding: .utf8
-                                                            )
-                                                            print ("file created successfully")
-                                                        }
-                                                        catch {
-                                                            print (error)
-                                                        }
-                                                       // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
+                                                    } label: { Label("Export (Plain CSV)", systemImage: "doc")}
+                                                    
+                                                    Button{
+                                                            //MARK: push content to txt file
+                                                            for pcrecord in pcrecords {
+                                                                let temp = ExportToTxT(pcrecord: pcrecord)
+                                                                _=temp
+                                                            }
+                                                            
+                                                            do {
+                                                                try
+                                                                String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
+                                                                    toFile: fnamepdf,
+                                                                    atomically: true,
+                                                                    encoding: .utf8
+                                                                )
+                                                                print ("file created successfully")
+                                                            }
+                                                            catch {
+                                                                print (error)
+                                                            }
+                                                        // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
                                                         isExportpdf = true
                                                         
-                                                        
+                                                    } label: { Label("Export (Encrypted PDF)", systemImage: "lock.doc")}
+                                                    Button{
+                                                        BCount += 5
                                                     }
-                                                    
-                                                    Button("Option 3") {
-                                                        // Perform action for Option 3
-                                                        print("Option 3 tapped")
-                                                    }
-                                                } label: {
-                                                    Image(systemName: "gear")
-                                                        .imageScale(.large)
-                                                        .foregroundColor(.red)
+                                                label: {Label("About", systemImage: "info.square")}.symbolEffect(.bounce, value: BCount).font(.largeTitle)
                                                 }
+                    label: {
+                        Image(systemName: "ellipsis.circle")
+                            .imageScale(.large)
+                            .foregroundColor(.red)
+                    }
                     }
                 
                 }
@@ -209,7 +204,10 @@ struct ContentView: View {
                 }
                 HStack
                 {
-                  
+                    Button{
+                        BCount += 5
+                    }
+                label: {Label("About", systemImage: "info.square")}.symbolEffect(.bounce, value: BCount)
                     
                     if !pcrecords.isEmpty {
                         Button(role: .destructive, action: {isShowingItemSheet = true})
@@ -297,12 +295,16 @@ struct ContentView: View {
         // Create a new PDF document
         
         // let temp = ExportContent.myshare.ExportRecord
-        let newlineCount = ExportContent.myshare.ExportRecord.reduce(0) { count, character in
+        let newlineCount = (ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord).reduce(0) { count, character in
             character == "\n" ? count + 1 : count
         }
         //print("number of line \(newlineCount)"
-    
-        let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: newlineCount*20)) // A4 paper size
+  
+        var height: Int = 842
+        if newlineCount>=50{ height = newlineCount*20 }
+        let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: height)) // A4 paper size
+   
+        
         
         let data = pdfRenderer.pdfData { context in
             
@@ -314,7 +316,7 @@ struct ContentView: View {
             ]
             // adding text to pdf
             
-            let text = ExportContent.myshare.ExportRecord
+            let text = ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord
             text.draw(at: CGPoint(x: 20, y: 50), withAttributes: attributes)
         
             // print("Number of newlines: \(newlineCount)")

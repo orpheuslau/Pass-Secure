@@ -21,14 +21,16 @@ struct ContentView: View {
     @State private var showAlert = false //user aleart for unsucessful authentication
     @State private var showTimeOut = false //user aleart for unsucessful authentication
     @State private var failMsg = false //reminder message to user
+    @State private var isExport = false //indicate export request
     @State private var isExportcsv = false //indicate export request
     @State private var isExportConfirmcsv = false //indicate export confirmation status
     @State private var isExportpdf = false //indicate export request
     @State private var isExportConfirmpdf = false //indicate export confirmation status
     @State private var BCount = 0
+    @State private var isShowingPopup = false
     private let fnamecsv = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
     private let fnamepdf = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
-   
+    @State private var fname = ""
     
     
     init() { //configure navigation bar title style
@@ -105,77 +107,71 @@ struct ContentView: View {
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
+                .sheet(isPresented: $isExportConfirmcsv) //MARK: activity sheet pop up
+                {
+                   // let path = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+                    ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.csv")]) //user to select how to save/handle the exported file
+                }
                 .sheet(isPresented: $isExportConfirmpdf) //MARK: activity sheet pop up
                 {
-                    ActivityView(activityItems: [URL(filePath: fnamepdf)]) //user to select how to save/handle the exported file
+                    ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.pdf")]) //user to select how to save/handle the exported file
                 }
                 .sheet(item: $pcrecordToEdit) { pcrecord in
                     UpdatePCRecordSheet(pcrecord: pcrecord, originalName: pcrecord.name, originalLogin: pcrecord.login, originalPass: pcrecord.pass)
                 }
+                
+                .sheet(isPresented: $isShowingPopup) {
+                    PopupView(isShowingPopup: $isShowingPopup, isExportpdf: $isExportpdf)
+                }
+                
                 .toolbar {
                     if !pcrecords.isEmpty {
-                        
-                    /*    Button("Add Password", systemImage: "plus", role: .destructive) {
-                            isShowingItemSheet = true
-                        }*/
-                        
-                    /*    Button(role: .destructive, action: {isShowingItemSheet = true})
-                        {
-                            Image(systemName: "gear")
-                                .imageScale(.large)
-                                .foregroundColor(.red) // Set the color to red
-                        } */
-                        
-                        
-                       // ToolbarItem(placement: .navigationBarLeading) {
+               
                                                 Menu {
                                                     
                                                     Button{
-                                                            //MARK: push content to txt file
-                                                            for pcrecord in pcrecords {
-                                                                let temp = ExportToTxT(pcrecord: pcrecord)
-                                                                _=temp
-                                                            }
-                                                            
-                                                            do {
-                                                                try
-                                                                String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
-                                                                    toFile: fnamepdf,
-                                                                    atomically: true,
-                                                                    encoding: .utf8
-                                                                )
-                                                                print ("file created successfully")
-                                                            }
-                                                            catch {
-                                                                print (error)
-                                                            }
-                                                            // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
-                                                            isExportpdf = true
+                                                   /*         //MARK: combining content into a consolidated string
+                                                        for pcrecord in pcrecords {
+                                                            let temp = ExportToMyshare(pcrecord: pcrecord)
+                                                            _=temp
+                                                        }
                                                         
+                                                        if isExportcsv {
+                                                            fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+                                                        }
+                                                        
+                                                        if isExportpdf {
+                                                            fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
+                                                        }
+                                                        
+                                                        do {
+                                                            try
+                                                            String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
+                                                                
+                                                                toFile: fname,
+                                                                atomically: true,
+                                                                encoding: .utf8
+                                                            )
+                                                            print ("file created successfully")
+                                                        }
+                                                        catch {
+                                                            print (error)
+                                                        }*/
+                                                    // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
+                                                    isExportcsv = true
+                                                      //  isExport = true
+                                                        exportContent()
                                                     } label: { Label("Export (Plain CSV)", systemImage: "doc")}
                                                     
                                                     Button{
-                                                            //MARK: push content to txt file
-                                                            for pcrecord in pcrecords {
-                                                                let temp = ExportToTxT(pcrecord: pcrecord)
-                                                                _=temp
-                                                            }
-                                                            
-                                                            do {
-                                                                try
-                                                                String(ExportContent.myshare.ExportRecord).write( //convert the consolidated string content into a txt file
-                                                                    toFile: fnamepdf,
-                                                                    atomically: true,
-                                                                    encoding: .utf8
-                                                                )
-                                                                print ("file created successfully")
-                                                            }
-                                                            catch {
-                                                                print (error)
-                                                            }
-                                                        // ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"  //re-initailize value
-                                                        isExportpdf = true
-                                                        
+                                                       
+                                                       // isExportpdf = true
+                                                        //isExport = true
+                                                        exportContent()
+                                                        self.isShowingPopup = true
+                                                        //isShowingPopup = true
+                                                        //let xxx = 
+                                                        //PopupView(isShowingPopup: $isShowingPopup)
                                                     } label: { Label("Export (Encrypted PDF)", systemImage: "lock.doc")}
                                                     Button{
                                                         BCount += 5
@@ -197,7 +193,8 @@ struct ContentView: View {
                         }, description: {
                             Text("Start adding Password record to see your list.")
                         }, actions: {
-                            Button("Add Password") { isShowingItemSheet = true }
+                            Button{ isShowingItemSheet = true }
+                        label: {Label("Add password", systemImage:"pencil.tip.crop.circle.badge.plus")}
                         })
                         .offset(y: -60)
                     }
@@ -220,6 +217,8 @@ struct ContentView: View {
                                 .cornerRadius(10)
                         } }
                 }
+                
+             
             } // the end of content protected by authentication
             
             else
@@ -265,25 +264,60 @@ struct ContentView: View {
             )
         }
         
-        .alert(isPresented: $isExportpdf) {
+
+        
+        .alert(isPresented: $isExport) {
             Alert(title: Text("Alert"), message: Text("Content will be exported to a plain CSV file"),
                   primaryButton: .cancel(Text("Cancel")) {
-                ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"
+                
+           //     ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
+             //   ExportContent.myshare.RecordCount = 0
+                
             },
                   secondaryButton: .default(Text("OK")) {
                 
+                for pcrecord in pcrecords { //push all content into myshare
+                    let temp = ExportToMyshare(pcrecord: pcrecord)
+                    _=temp
+                }
                 
-                let filePath = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
-                  let success = write(toFile: filePath)
-
-                  if success {
-                      Text("PDF document successfully written to file: \(filePath)")
-                  } else {
-                      Text("Failed to write PDF document to file: \(filePath)")
-                  }
-                ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n"
+                if isExportcsv {
+                    fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+                }
+                
+                if isExportpdf {
+                    fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
+                }
+                
+                do {
+                    try
+                    String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
+                        
+                        toFile: fname,
+                        atomically: true,
+                        encoding: .utf8
+                    )
+                    print ("file created successfully, paht is \(fname)")
+                }
+                catch {
+                    print (error)
+                }
+                
+                if isExportcsv {
+                    isExportConfirmcsv = true
+                }
+                
+                if isExportpdf {
+                    _ = write(toFile: fname)
+                    
+                    isExportConfirmpdf = true
+                }
+                
+                ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
                 ExportContent.myshare.RecordCount = 0
-                isExportConfirmpdf = true
+                isExport = false
+                isExportcsv = false
+                isExportpdf = false
             }
             )
         }
@@ -295,9 +329,9 @@ struct ContentView: View {
         // Create a new PDF document
         
         // let temp = ExportContent.myshare.ExportRecord
-        let newlineCount = (ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord).reduce(0) { count, character in
+        let newlineCount = (ExportContent.myshare.ExportRecord.reduce(0) { count, character in
             character == "\n" ? count + 1 : count
-        }
+        })
         //print("number of line \(newlineCount)"
   
         var height: Int = 842
@@ -316,7 +350,7 @@ struct ContentView: View {
             ]
             // adding text to pdf
             
-            let text = ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord+ExportContent.myshare.ExportRecord
+            let text = ExportContent.myshare.ExportRecord
             text.draw(at: CGPoint(x: 20, y: 50), withAttributes: attributes)
         
             // print("Number of newlines: \(newlineCount)")
@@ -327,21 +361,67 @@ struct ContentView: View {
             print("Failed to create PDF document")
             return false
         }
-    
-            // Add content to the PDF document (e.g., pages, annotations, etc.)
+        
+        // Add content to the PDF document (e.g., pages, annotations, etc.)
         
         // Write the PDF document to the specified file path
-        do {
-            try pdfDocument.write(to: URL(fileURLWithPath: path), withOptions: [PDFDocumentWriteOption.userPasswordOption : "pwd", PDFDocumentWriteOption.ownerPasswordOption : "pwd"])
-            return true
-        } catch {
-            print("Error writing PDF document: \(error.localizedDescription)")
-            return false
-        }
-        }
+        if pdfDocument.write(to: URL(fileURLWithPath: path), withOptions: [PDFDocumentWriteOption.userPasswordOption : "pwd", PDFDocumentWriteOption.ownerPasswordOption : "pwd"])
+        {return true }
+        else { return false}
         
+        /* catch {
+         print("Error writing PDF document: \(error.localizedDescription)")
+         return false
+         }*/
+    }
+    
       
   //  }
+    func exportContent()
+    {
+      
+      for pcrecord in pcrecords { //push all content into myshare
+          let temp = ExportToMyshare(pcrecord: pcrecord)
+          _=temp
+      }
+      
+      if isExportcsv {
+          fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+      }
+      
+      if isExportpdf {
+          fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
+      }
+      
+      do {
+          try
+          String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
+              
+              toFile: fname,
+              atomically: true,
+              encoding: .utf8
+          )
+          print ("file created successfully, paht is \(fname)")
+      }
+      catch {
+          print (error)
+      }
+      
+      if isExportcsv {
+          isExportConfirmcsv = true
+      }
+      
+      if isExportpdf {
+          _=write(toFile: fname)
+          isExportConfirmpdf = true
+      }
+      
+      ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
+      ExportContent.myshare.RecordCount = 0
+      isExport = false
+      isExportcsv = false
+      isExportpdf = false
+  }
     
     
     func authenticate() { //perform biometric authentication
@@ -440,9 +520,81 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .modelContainer(for: PCRecord.self)
+              
 }
 
-struct ExportToTxT
+
+
+
+struct PopupView: View {
+    @Binding var isShowingPopup: Bool
+    @State private var inputText: String = ""
+    @State private var ReinputText: String = ""
+    @State private var isValidated: Bool = false
+    @Environment(\.modelContext) var context
+    @Environment(\.dismiss) private var dismiss
+    @State private var name: String = ""
+    @State private var login: String = ""
+    @State private var pass: String = ""
+    @State var isUnMatch: Bool = false
+    @Binding var isExportpdf: Bool
+    //@EnvironmentObject var contentView: ContentView
+    
+
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                VStack
+                {
+                    SecureField("Enter Key", text: $name)
+                    Divider()
+                    SecureField("Re-enter Key", text: $login)
+                    //TextField("Passcode", text: $pass)
+                }}
+            .navigationTitle("Encrytion key")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                                 }
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button("Save") {
+                        
+                        if name==login{
+                            //dismiss()
+                            isExportpdf = true
+                            isShowingPopup = false //dismiss the popup sheet if key is match
+                           
+                           //self.exportContent()
+                            
+                        }
+                        else{
+                        //    Text("mismatch")
+                           isUnMatch = true
+                            name=""
+                            login=""
+                        }
+                     //  let pcrecord = PCRecord(name: name, login: login, pass: pass)
+                      //  context.insert(pcrecord) //insert new record in swiftdata
+                                          
+                    }
+            
+                }
+                
+            }
+        }.alert(isPresented: $isUnMatch) {
+            Alert(title: Text("Key mismatch"),
+            message: Text("Please try again"),
+                  dismissButton: .default(Text("OK")){})
+        }
+    }
+}
+       
+
+struct ExportToMyshare
 {
     let pcrecord: PCRecord
     init(pcrecord: PCRecord){

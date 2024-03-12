@@ -35,7 +35,7 @@ struct ContentView: View {
     @State var Encrypass:String = ""
     @State var ReEncrypass:String = ""
     @State private var bbb = false
-    @State var tempmsg = ""
+    @State var BoxMsg = ""
 
     
     
@@ -53,20 +53,8 @@ struct ContentView: View {
     }
     
     var body: some View {
-      
         NavigationStack {
             if isUnlocked {
-                
-             /*   let filePath = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
-                let success = write(toFile: filePath)
-
-                if success {
-                    Text("PDF document successfully written to file: \(filePath)")
-                } else {
-                    Text("Failed to write PDF document to file: \(filePath)")
-                }
-            */
-                
                 List {
                     if !pcrecords.isEmpty {
                         HStack{
@@ -98,65 +86,39 @@ struct ContentView: View {
                     }
                 }
                 .searchable(text: $text, prompt: "Search Name")
-                
-            /*   .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button(action: {
-                            // Perform action for the button
-                            print("Button tapped")
-                        }) {
-                            Image(systemName: "gear")
-                                .imageScale(.large)
-                        }
-                    }
-                } */
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
                 .sheet(isPresented: $isExportConfirmcsv)
                 {
-                   // let path = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
-                    ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.csv")]) //user to select how to save/handle the exported file
+                    ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.csv")]) //user to select how to handle the exported csv file
                 }
                 .sheet(isPresented: $isExportConfirmpdf)
                 {
-                    ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.pdf")]) //user to select how to save/handle the exported file
+                    ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.pdf")]) //user to select how to handle the exported pdf file
                 }
                 .sheet(item: $pcrecordToEdit) { pcrecord in
                     UpdatePCRecordSheet(pcrecord: pcrecord, originalName: pcrecord.name, originalLogin: pcrecord.login, originalPass: pcrecord.pass)
                 }
-                
-                .sheet(isPresented: $isShowingPopup) {
-                    PopupView()
-                    
-                }
-                
                 .toolbar {
-                   
                     if !pcrecords.isEmpty {
-              
-                        
-                    
-                        
-                                                Menu { //MARK: menu
-                                                   
-                                                    Button{
-                                                        self.isExportpdf = true
-                                                                        }
-                                                label: { Label("Export (Encrypted PDF)", systemImage: "lock.doc")}
-                                                    
-                                                    Button{
-                                                        isExportcsv = true
-                                                        exportContent()
-                                                    } label: { Label("Export (Plain CSV)", systemImage: "doc")}
-                                                  
-                                              
-                                                                                                    Button{
-                                                                                                        
-                                                        BCount += 5
-                                                    }
-                                                label: {Label("About", systemImage: "info.square")}
-                                                }
+                        Menu { //MARK: menu
+                            
+                            Button{
+                                self.isExportpdf = true // export as encrypted pdf
+                            }
+                        label: { Label("Export (Encrypted PDF)", systemImage: "lock.doc")}
+                            
+                            Button{
+                                self.isExportcsv = true //export as csv
+                                exportContent()
+                            } label: { Label("Export (Plain CSV)", systemImage: "doc")}
+                            
+                            
+                            Button{
+                            }
+                        label: {Label("About", systemImage: "info.square")}
+                        }
                     label: {
                         Image(systemName: "ellipsis.circle")
                             .imageScale(.large)
@@ -164,7 +126,7 @@ struct ContentView: View {
                     }
                     }
                     
-                }.alert("Encryption Key", isPresented: $isExportpdf) { //MARK: enter encrypt key
+                }.alert("Encryption Key", isPresented: $isExportpdf) { //MARK: pop up box 1
                     
                     SecureField("Enter Key", text: $Encrypass)
                     SecureField("Re-enter Key", text: $ReEncrypass)
@@ -174,90 +136,77 @@ struct ContentView: View {
                         
                         if (Encrypass=="" && ReEncrypass=="")
                         {
-                            //self.isIncomplete = true
                             self.isExportpdf2 = true
-                            tempmsg = "Fields cannot be empty"
-                            
+                            BoxMsg = "Fields cannot be empty"
                         }
                         else
                         if (Encrypass=="" || ReEncrypass=="")
                         {
-                            //self.isIncomplete = true
                             self.isExportpdf2 = true
-                            tempmsg = "Fields cannot be empty"
-                            
+                            BoxMsg = "Fields cannot be empty"
                         }
                         else
                         if (Encrypass != ReEncrypass)
                         {
-                           tempmsg = "Key mismatch"
+                            BoxMsg = "Key mismatch"
                             Encrypass=""
                             ReEncrypass=""
                             isExportpdf2 = true
-                            
                         }
                         else
-                        
-                            if (Encrypass==ReEncrypass)
-                            {
-                                ExportContent.myshare.Encrypass = Encrypass
-                                exportContent()
-                            }
-                       
+                        if (Encrypass==ReEncrypass)
+                        {
+                            ExportContent.myshare.Encrypass = Encrypass
+                            exportContent()
+                            Encrypass=""
+                            ReEncrypass=""
+                            BoxMsg=""
+                        }
                     }
                 }
             message: {
-                Text(tempmsg)
+                Text(BoxMsg)
             }
                 
-            .alert("Encryption Key", isPresented: $isExportpdf2) { //MARK: enter encrypt key
+            .alert("Encryption Key", isPresented: $isExportpdf2) { //MARK: pop up box 2
                 
                 SecureField("Enter Key", text: $Encrypass)
                 SecureField("Re-enter Key", text: $ReEncrypass)
                 Button("Cancel", role:. cancel) {}
                 Button("Submit") {
                     
-                    
                     if (Encrypass=="" && ReEncrypass=="")
                     {
-                        //self.isIncomplete = true
                         self.isExportpdf = true
-                        tempmsg = "Fields cannot be empty"
-                        
+                        BoxMsg = "Fields cannot be empty"
                     }
                     else
                     if (Encrypass=="" || ReEncrypass=="")
                     {
-                        //self.isIncomplete = true
                         self.isExportpdf = true
-                        tempmsg = "Fields cannot be empty"
-                        
+                        BoxMsg = "Fields cannot be empty"
                     }
                     else
                     if (Encrypass != ReEncrypass)
                     {
-                       tempmsg = "Key mismatch"
+                       BoxMsg = "Key mismatch"
                         Encrypass=""
                         ReEncrypass=""
                         isExportpdf = true
-                        
                     }
                     else
-                    
                         if (Encrypass==ReEncrypass)
                         {
                             ExportContent.myshare.Encrypass = Encrypass
-                           
                         Encrypass=""
                         ReEncrypass=""
                         exportContent()
-                        
+                        BoxMsg=""
                         }
-                  
                 }
             }
         message: {
-            Text(tempmsg)
+            Text(BoxMsg)
         }
                 
                 .overlay {
@@ -268,7 +217,7 @@ struct ContentView: View {
                             Text("Start adding Password record to see your list.")
                         }, actions: {
                             Button{ isShowingItemSheet = true }
-                        label: {Label("Add password", systemImage:"pencil.tip.crop.circle.badge.plus")}
+                        label: {Label("Create new record", systemImage:"pencil.tip.crop.circle.badge.plus")}
                         })
                         .offset(y: -60)
                     }
@@ -276,11 +225,10 @@ struct ContentView: View {
                 HStack
                 {
                    
-                    
                     if !pcrecords.isEmpty {
                         Button(role: .destructive, action: {isShowingItemSheet = true})
                         {
-                            Text("Add")
+                            Text("New record")
                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                 .padding()
                                 .background(Color.red)
@@ -288,8 +236,6 @@ struct ContentView: View {
                                 .cornerRadius(10)
                         } }
                 }
-                
-             
             } // the end of content protected by authentication
             
             else
@@ -335,15 +281,10 @@ struct ContentView: View {
             )
         }
        
- 
-        
-        .alert(isPresented: $isExport) {
+      /*  .alert(isPresented: $isExportcsv) {
             Alert(title: Text("Alert"), message: Text("Content will be exported to a plain CSV file"),
                   primaryButton: .cancel(Text("Cancel")) {
-                
-           //     ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
-             //   ExportContent.myshare.RecordCount = 0
-                
+            
             },
                   secondaryButton: .default(Text("OK")) {
                 
@@ -391,7 +332,7 @@ struct ContentView: View {
                 isExportpdf = false
             }
             )
-        }
+        }*/
     }
     
     //func createPasswordProtectedPDF() {
@@ -402,22 +343,16 @@ struct ContentView: View {
     func write(toFile path: String, withOptions options: [PDFDocumentWriteOption: Any]? = nil) -> Bool {
         // Create a new PDF document
         
-        // let temp = ExportContent.myshare.ExportRecord
         let newlineCount = (ExportContent.myshare.ExportRecord.reduce(0) { count, character in
-            character == "\n" ? count + 1 : count
-        })
-        //print("number of line \(newlineCount)"
-  
-        var height: Int = 842
+            character == "\n" ? count + 1 : count})
+        
+        var height: Int = 842 // default height as A4 paper
         if newlineCount>=50{ height = newlineCount*20 }
-        let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: height)) // A4 paper size
-   
-        
-        
+        let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: height)) // increase the height in proportion to number of record
+
         let data = pdfRenderer.pdfData { context in
             
-            context.beginPage()
-            
+            context.beginPage() //create a new pdf page
             
             let attributes = [
                 NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 12)
@@ -426,8 +361,6 @@ struct ContentView: View {
             
             let text = ExportContent.myshare.ExportRecord
             text.draw(at: CGPoint(x: 20, y: 50), withAttributes: attributes)
-        
-            // print("Number of newlines: \(newlineCount)")
         }
         
         guard let pdfDocument = PDFDocument(data: data)
@@ -436,17 +369,11 @@ struct ContentView: View {
             return false
         }
         
-        // Add content to the PDF document (e.g., pages, annotations, etc.)
         
         // Write the PDF document to the specified file path
         if pdfDocument.write(to: URL(fileURLWithPath: path), withOptions: [PDFDocumentWriteOption.userPasswordOption : ExportContent.myshare.Encrypass, PDFDocumentWriteOption.ownerPasswordOption : ExportContent.myshare.Encrypass])
         {return true }
         else { return false}
-        
-        /* catch {
-         print("Error writing PDF document: \(error.localizedDescription)")
-         return false
-         }*/
     }
     
       
@@ -472,12 +399,11 @@ struct ContentView: View {
       do {
           try
           String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
-              
               toFile: fname,
               atomically: true,
               encoding: .utf8
           )
-          print ("file created successfully, paht is \(fname)")
+          print ("file created successfully, path is \(fname)")
       }
       catch {
           print (error)
@@ -488,13 +414,13 @@ struct ContentView: View {
       }
       
       if isExportpdf {
-          _=write(toFile: fname)
+          _=write(toFile: fname) //function creates pdf
           isExportConfirmpdf = true
       }
       
       ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
       ExportContent.myshare.RecordCount = 0
-      isExport = false
+     // isExport = false
       isExportcsv = false
       isExportpdf = false
   }
@@ -593,127 +519,13 @@ struct ContentView: View {
     }
 }
 
+/*
 #Preview {
     ContentView()
         .modelContainer(for: PCRecord.self)
               
 }
-
-
-
-
-struct PopupView: View {
-  //  @Binding var isShowingPopup: Bool
-    @State private var inputText: String = ""
-    @State private var ReinputText: String = ""
-    @State private var isValidated: Bool = false
-    @Environment(\.modelContext) var context
-    @Environment(\.dismiss) private var dismiss
-    @State var Encrypass: String = ""
-    @State var ReEncrypass: String = ""
-    @State var isUnMatch: Bool = false
-    @State var isIncomplete: Bool = false
-    @State var isPresented: Bool = false
-
-   
-    @State var fname:String = ""
-    
-
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                VStack
-                {
-                    Spacer()
-                    SecureField("Enter Key", text: $Encrypass)
-                    Divider()
-                    Spacer()
-                    SecureField("Re-enter Key", text: $ReEncrypass)
-                    Spacer()
-                }
-                
-                               
-            }
-            .navigationTitle("Encryption key")
-            .navigationBarTitleDisplayMode(.large)
-            
-                      
-            .alert(isPresented: $isUnMatch) {
-                Alert(title: Text("Key mismatch"),
-                      message: Text("Please try again"),
-                      dismissButton: .default(Text("OK")){})
-            }
-            
-                     
-            Button("login"){
-                isPresented = true
-            }.alert("login", isPresented: $isPresented) {
-                TextField("yourname", text: $Encrypass)
-                SecureField("second name", text: $ReEncrypass)
-                
-                Button("cancel", role:. cancel) {}
-                Button("Submit")
-                {}
-            }
-        message: {
-            Text("this is the msg")
-            }
-            
-            HStack {
-                Button( action: {dismiss()})
-                {
-                    Text("Cancel")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                
-                Button(action: {
-                    
-                    if (Encrypass=="" || ReEncrypass=="")
-                    {
-                        self.isIncomplete = true
-                        
-                    }
-                    else
-                    {
-                        if (Encrypass==ReEncrypass)
-                        {
-                            ExportContent.myshare.Encrypass = Encrypass
-                            dismiss()
-                        }
-                    }
-                    
-                    if (Encrypass != ReEncrypass)
-                    {
-                        self.isUnMatch = true
-                        Encrypass=""
-                        ReEncrypass=""
-                    }
-                    
-                })
-                {
-                    Text("Save")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-            }
-                    
-                            
-        }
-    }
-    
-    
-    
-    
-}
-       
+       */
 
 struct ExportToMyshare
 {
@@ -828,5 +640,49 @@ struct UpdatePCRecordSheet: View {
                 }
             }
         }
+    }
+}
+
+
+
+
+struct AppPage: View {
+    var body: some View {
+        VStack {
+            Image("logo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 100, height: 100)
+            
+            Text("Pass Secure")
+                .font(.title)
+                .fontWeight(.bold)
+                .padding(.top, 20)
+            
+            Text("Welcome to My Awesome App! This app is designed to make your life easier and more enjoyable. With a user-friendly interface and a wide range of features, it's the perfect companion for your daily tasks.")
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+            
+            Button(action: {
+                // Handle button action here
+            }) {
+                Text("Get Started")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            .padding(.top, 30)
+        }
+        .padding()
+    }
+}
+
+struct AppPage_Previews: PreviewProvider {
+    static var previews: some View {
+        AppPage()
     }
 }

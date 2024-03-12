@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var loginTime: Date?
     @Environment(\.modelContext) var context
     @State private var isShowingItemSheet = false
+    @State private var isShowingAbout = false
     @Query(sort: \PCRecord.name, order: .forward)var pcrecords: [PCRecord]
     @State private var pcrecordToEdit: PCRecord?
     @State private var pcrecordToExport: PCRecord?
@@ -89,6 +90,7 @@ struct ContentView: View {
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
+                .sheet(isPresented: $isShowingAbout) { AppPage() }
                 .sheet(isPresented: $isExportConfirmcsv)
                 {
                     ActivityView(activityItems: [URL(filePath: NSHomeDirectory()  + "/Documents/PassSecureExport.csv")]) //user to select how to handle the exported csv file
@@ -116,6 +118,7 @@ struct ContentView: View {
                             
                             
                             Button{
+                                self.isShowingAbout = true
                             }
                         label: {Label("About", systemImage: "info.square")}
                         }
@@ -126,11 +129,12 @@ struct ContentView: View {
                     }
                     }
                     
-                }.alert("Encryption Key", isPresented: $isExportpdf) { //MARK: pop up box 1
-                    
+                }.alert("Encryption Key for PDF", isPresented: $isExportpdf) { //MARK: pop up box 1
                     SecureField("Enter Key", text: $Encrypass)
                     SecureField("Re-enter Key", text: $ReEncrypass)
-                    Button("Cancel", role:. cancel) {}
+                    Button("Cancel", role:. cancel) {
+                        BoxMsg = ""
+                    }
                     Button("Submit") {
                         
                         
@@ -168,11 +172,13 @@ struct ContentView: View {
                 Text(BoxMsg)
             }
                 
-            .alert("Encryption Key", isPresented: $isExportpdf2) { //MARK: pop up box 2
+            .alert("Encryption Key for PDF", isPresented: $isExportpdf2) { //MARK: pop up box 2
                 
                 SecureField("Enter Key", text: $Encrypass)
                 SecureField("Re-enter Key", text: $ReEncrypass)
-                Button("Cancel", role:. cancel) {}
+                Button("Cancel", role:. cancel) {
+                    BoxMsg = ""
+                }
                 Button("Submit") {
                     
                     if (Encrypass=="" && ReEncrypass=="")
@@ -258,16 +264,25 @@ struct ContentView: View {
                 }
                 if showTimeOut
                 {
+                    Spacer()
                     Image("logo")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 100, height: 100)
-                    Text("Session TimeOut")
+                        
+                    Text("Your session expired")
                         .font(.title)
                         .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
-                    Text("\nPlease remember to close the app")
-                        .font(.system(size: 12, weight: .light, design: .monospaced))
-                        .foregroundColor(Color.gray)
+                   
+                    
+                    Text("\nSession will be automatically renewed every five minutes, ensuring you're protected from leaving your session unattended for too long!")
+                        .font(.system(size: 15))
+                        .lineSpacing(5)
+                        .multilineTextAlignment(.leading)
+                        .padding(.horizontal, 40)
+                        .foregroundColor(.gray)
+                    Spacer()
+                    Spacer()
                 }
             }
         }
@@ -280,64 +295,7 @@ struct ContentView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
-       
-      /*  .alert(isPresented: $isExportcsv) {
-            Alert(title: Text("Alert"), message: Text("Content will be exported to a plain CSV file"),
-                  primaryButton: .cancel(Text("Cancel")) {
-            
-            },
-                  secondaryButton: .default(Text("OK")) {
-                
-                for pcrecord in pcrecords { //push all content into myshare
-                    let temp = ExportToMyshare(pcrecord: pcrecord)
-                    _=temp
-                }
-                
-                if isExportcsv {
-                    fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
-                }
-                
-                if isExportpdf {
-                    fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
-                }
-                
-                do {
-                    try
-                    String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
-                        
-                        toFile: fname,
-                        atomically: true,
-                        encoding: .utf8
-                    )
-                    print ("file created successfully, paht is \(fname)")
-                }
-                catch {
-                    print (error)
-                }
-                
-                if isExportcsv {
-                    isExportConfirmcsv = true
-                }
-                
-                if isExportpdf {
-                    _ = write(toFile: fname)
-                    
-                    isExportConfirmpdf = true
-                }
-                
-                ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
-                ExportContent.myshare.RecordCount = 0
-                isExport = false
-                isExportcsv = false
-                isExportpdf = false
-            }
-            )
-        }*/
     }
-    
-    //func createPasswordProtectedPDF() {
-    
-
     
 
     func write(toFile path: String, withOptions options: [PDFDocumentWriteOption: Any]? = nil) -> Bool {
@@ -647,37 +605,68 @@ struct UpdatePCRecordSheet: View {
 
 
 struct AppPage: View {
+    @Environment(\.dismiss) private var dismiss
+    
     var body: some View {
         VStack {
+           
             Image("logo")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 100, height: 100)
-            
+                .padding(.top, 30)
+              
             Text("Pass Secure")
                 .font(.title)
                 .fontWeight(.bold)
-                .padding(.top, 20)
+                //.padding(.top, 20)
             
-            Text("Welcome to My Awesome App! This app is designed to make your life easier and more enjoyable. With a user-friendly interface and a wide range of features, it's the perfect companion for your daily tasks.")
-                .font(.body)
-                .multilineTextAlignment(.center)
+            Text("Pass Secure is designed to make your life easier. Using the latest iOS technology, Swiftdata; your login credentials are securely protected on your device. It is an offline solution, meaning that all data will be confined to your local device with no interaction with any kind of network. Additionally, Pass Secure incorporates the following security measures: \n")
+                .font(.system(size: 15))
+                .lineSpacing(5)
+                .multilineTextAlignment(.leading)
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
+                .foregroundColor(.gray)
             
-            Button(action: {
-                // Handle button action here
-            }) {
-                Text("Get Started")
-                    .foregroundColor(.white)
-                    .font(.headline)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
+            Text(" 1. Face ID, Fingerprint authentication \n 2. Encrypted PDF export \n 3. Session time-out every 5 minutes \n")
+                .font(.body)
+                .lineSpacing(10)
+                .multilineTextAlignment(.leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                .foregroundColor(.gray)
+              
+   
+         
+            Text("VISIT FOR MORE")
+                .font(.title2)
+                .padding(.top, 40)
+                .bold()
+                .underline()
+                .foregroundColor(.black)
+                .onTapGesture {
+                    // Handle tap gesture to open the website URL
+                    if let url = URL(string: "https://www.orpheuslau.dev") {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            Spacer()
+            HStack{
+                Button(action: {dismiss()
+                    // Perform action to go back
+                }) {
+                    Image(systemName: "arrowshape.backward.circle.fill")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal)
+                    
+                }
+             Spacer()
             }
-            .padding(.top, 30)
+        
         }
-        .padding()
+       // .padding()
     }
 }
 

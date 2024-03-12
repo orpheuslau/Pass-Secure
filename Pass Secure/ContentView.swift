@@ -147,29 +147,15 @@ struct ContentView: View {
                                                     
                                                     Button{
                                                         isExportcsv = true
-                                                       // exportContent()
+                                                        exportContent()
                                                     } label: { Label("Export (Plain CSV)", systemImage: "doc")}
                                                   
-                                                 /*  Button("login") {
-                                                                print("the value is \(isExportpdf)")
-                                                                bbb = true
-                                                            }
-                                                            .alert("login", isPresented: $bbb) {
-                                                                TextField("yourname", text: $Encrypass)
-                                                                SecureField("second name", text: $ReEncrypass)
-                                                                Button("cancel", role:. cancel) {}
-                                                                Button("Submit") {}
-                                                            }
-                                                            message: {
-                                                                Text("this is the msg")
-                                                            }*/
-                                                    
-                                                                //label: { Label("Export (Encrypted PDF)", systemImage: "lock.doc")}
+                                              
                                                                                                     Button{
-                                                                                                        isShowingPopup = true
+                                                                                                        
                                                         BCount += 5
                                                     }
-                                                label: {Label("About", systemImage: "info.square")}.symbolEffect(.bounce, value: BCount).font(.largeTitle)
+                                                label: {Label("About", systemImage: "info.square")}
                                                 }
                     label: {
                         Image(systemName: "ellipsis.circle")
@@ -215,10 +201,9 @@ struct ContentView: View {
                             if (Encrypass==ReEncrypass)
                             {
                                 ExportContent.myshare.Encrypass = Encrypass
-                            Encrypass=""
-                            ReEncrypass=""
-                            tempmsg=""
+                                exportContent()
                             }
+                       
                     }
                 }
             message: {
@@ -262,11 +247,13 @@ struct ContentView: View {
                         if (Encrypass==ReEncrypass)
                         {
                             ExportContent.myshare.Encrypass = Encrypass
-                            // dismiss()
+                           
                         Encrypass=""
                         ReEncrypass=""
-                        tempmsg=""
+                        exportContent()
+                        
                         }
+                  
                 }
             }
         message: {
@@ -288,10 +275,7 @@ struct ContentView: View {
                 }
                 HStack
                 {
-                    Button{
-                        BCount += 5
-                    }
-                label: {Label("About", systemImage: "info.square")}.symbolEffect(.bounce, value: BCount)
+                   
                     
                     if !pcrecords.isEmpty {
                         Button(role: .destructive, action: {isShowingItemSheet = true})
@@ -412,15 +396,7 @@ struct ContentView: View {
     
     //func createPasswordProtectedPDF() {
     
-    func toValidate(key1: String, key2: String)
-    {
-        var key1: String
-        var Key2: String
-        
-        isExportpdf = true
-  
-        
-    }
+
     
 
     func write(toFile path: String, withOptions options: [PDFDocumentWriteOption: Any]? = nil) -> Bool {

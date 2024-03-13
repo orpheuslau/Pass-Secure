@@ -16,28 +16,20 @@ struct ContentView: View {
     @State private var isShowingAbout = false
     @Query(sort: \PCRecord.name, order: .forward)var pcrecords: [PCRecord]
     @State private var pcrecordToEdit: PCRecord?
-    @State private var pcrecordToExport: PCRecord?
-    @State private var text = "" //for error message
+    @State private var searchtext = "" //for error message
     @State private var isUnlocked = false //indicate authentication status
     @State private var showAlert = false //user aleart for unsucessful authentication
     @State private var showTimeOut = false //user aleart for unsucessful authentication
     @State private var failMsg = false //reminder message to user
-    @State private var isExport = false //indicate export request
     @State private var isExportcsv = false //indicate export request
     @State private var isExportConfirmcsv = false //indicate export confirmation status
     @State private var isExportpdf = false //indicate export request
     @State private var isExportpdf2 = false //indicate export request
     @State private var isExportConfirmpdf = false //indicate export confirmation status
-    @State private var BCount = 0
-    @State private var isShowingPopup = false
-    private let fnamecsv = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
-    private let fnamepdf = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
     @State private var fname = ""
     @State var Encrypass:String = ""
     @State var ReEncrypass:String = ""
-    @State private var bbb = false
     @State var BoxMsg = ""
-
     
     
     init() { //configure navigation bar title style
@@ -55,7 +47,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            if isUnlocked {
+            if isUnlocked { // authroized content
                 List {
                     if !pcrecords.isEmpty {
                         HStack{
@@ -72,7 +64,7 @@ struct ContentView: View {
                     }
                     
                     ForEach(pcrecords) { pcrecord in //MARK: for loop
-                        if pcrecord.name.contains(text) || text.isEmpty
+                        if pcrecord.name.contains(searchtext) || searchtext.isEmpty
                         {
                             PCRecordCell(pcrecord: pcrecord)
                                 .onTapGesture {
@@ -86,7 +78,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                .searchable(text: $text, prompt: "Search Name")
+                .searchable(text: $searchtext, prompt: "Search Name")
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
                 .sheet(isPresented: $isShowingItemSheet) { AddPCRecordSheet() }
@@ -195,42 +187,40 @@ struct ContentView: View {
                     else
                     if (Encrypass != ReEncrypass)
                     {
-                       BoxMsg = "Key mismatch"
+                        BoxMsg = "Key mismatch"
                         Encrypass=""
                         ReEncrypass=""
                         isExportpdf = true
                     }
                     else
-                        if (Encrypass==ReEncrypass)
-                        {
-                            ExportContent.myshare.Encrypass = Encrypass
+                    if (Encrypass==ReEncrypass)
+                    {
+                        ExportContent.myshare.Encrypass = Encrypass
                         Encrypass=""
                         ReEncrypass=""
                         exportContent()
                         BoxMsg=""
-                        }
-                }
-            }
-        message: {
-            Text(BoxMsg)
-        }
-                
-                .overlay {
-                    if pcrecords.isEmpty {
-                        ContentUnavailableView(label: {
-                            Label("No record", systemImage: "list.bullet.rectangle.portrait")
-                        }, description: {
-                            Text("Start adding Password record to see your list.")
-                        }, actions: {
-                            Button{ isShowingItemSheet = true }
-                        label: {Label("Create new record", systemImage:"pencil.tip.crop.circle.badge.plus")}
-                        })
-                        .offset(y: -60)
                     }
                 }
+            }
+            message: {
+                Text(BoxMsg)
+            }
+            .overlay {
+                if pcrecords.isEmpty {
+                    ContentUnavailableView(label: {
+                        Label("No record", systemImage: "list.bullet.rectangle.portrait")
+                    }, description: {
+                        Text("Start adding Password record to see your list.")
+                    }, actions: {
+                        Button{ isShowingItemSheet = true }
+                    label: {Label("Create new record", systemImage:"pencil.tip.crop.circle.badge.plus")}
+                    })
+                    .offset(y: -60)
+                }
+            }
                 HStack
                 {
-                   
                     if !pcrecords.isEmpty {
                         Button(role: .destructive, action: {isShowingItemSheet = true})
                         {
@@ -269,11 +259,11 @@ struct ContentView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 100, height: 100)
-                        
+                    
                     Text("Your session expired")
                         .font(.title)
                         .foregroundColor(Color(red: 0.86, green: 0.24, blue: 0.00))
-                   
+                    
                     
                     Text("\nSession will be automatically renewed every five minutes, ensuring you're protected from leaving your session unattended for too long!")
                         .font(.system(size: 15))
@@ -297,7 +287,7 @@ struct ContentView: View {
         }
     }
     
-
+    
     func write(toFile path: String, withOptions options: [PDFDocumentWriteOption: Any]? = nil) -> Bool {
         // Create a new PDF document
         
@@ -307,7 +297,7 @@ struct ContentView: View {
         var height: Int = 842 // default height as A4 paper
         if newlineCount>=50{ height = newlineCount*20 }
         let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 595, height: height)) // increase the height in proportion to number of record
-
+        
         let data = pdfRenderer.pdfData { context in
             
             context.beginPage() //create a new pdf page
@@ -334,54 +324,53 @@ struct ContentView: View {
         else { return false}
     }
     
-      
-  //  }
+    
+    //  }
     func exportContent()
     {
-      
-      for pcrecord in pcrecords { //push all content into myshare
-          let temp = ExportToMyshare(pcrecord: pcrecord)
-          _=temp
-      }
-      
-      if isExportcsv {
-          fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
-      }
-      
+        
+        for pcrecord in pcrecords { //push all content into myshare
+            let temp = ExportToMyshare(pcrecord: pcrecord)
+            _=temp
+        }
+        
+        if isExportcsv {
+            fname = NSHomeDirectory() + "/Documents/PassSecureExport.csv"
+        }
+        
         print(isExportpdf)
-      if isExportpdf {
-          fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
-          
-      }
-      
-      do {
-          try
-          String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
-              toFile: fname,
-              atomically: true,
-              encoding: .utf8
-          )
-          print ("file created successfully, path is \(fname)")
-      }
-      catch {
-          print (error)
-      }
-      
-      if isExportcsv {
-          isExportConfirmcsv = true
-      }
-      
-      if isExportpdf {
-          _=write(toFile: fname) //function creates pdf
-          isExportConfirmpdf = true
-      }
-      
-      ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
-      ExportContent.myshare.RecordCount = 0
-     // isExport = false
-      isExportcsv = false
-      isExportpdf = false
-  }
+        if isExportpdf {
+            fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
+            
+        }
+        
+        do {
+            try
+            String(ExportContent.myshare.ExportRecord).write( // write the consolidated string content into a file
+                toFile: fname,
+                atomically: true,
+                encoding: .utf8
+            )
+            print ("file created successfully, path is \(fname)")
+        }
+        catch {
+            print (error)
+        }
+        
+        if isExportcsv {
+            isExportConfirmcsv = true
+        }
+        
+        if isExportpdf {
+            _=write(toFile: fname) //function creates pdf
+            isExportConfirmpdf = true
+        }
+        
+        ExportContent.myshare.ExportRecord = "NAME, LOGIN, PASS\n" // re-initialize
+        ExportContent.myshare.RecordCount = 0
+        isExportcsv = false
+        isExportpdf = false
+    }
     
     
     func authenticate() { //perform biometric authentication
@@ -478,12 +467,12 @@ struct ContentView: View {
 }
 
 /*
-#Preview {
-    ContentView()
-        .modelContainer(for: PCRecord.self)
-              
-}
-       */
+ #Preview {
+ ContentView()
+ .modelContainer(for: PCRecord.self)
+ 
+ }
+ */
 
 struct ExportToMyshare
 {
@@ -601,25 +590,21 @@ struct UpdatePCRecordSheet: View {
     }
 }
 
-
-
-
 struct AppPage: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack {
-           
             Image("logo")
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 100, height: 100)
                 .padding(.top, 30)
-              
+            
             Text("Pass Secure")
                 .font(.title)
                 .fontWeight(.bold)
-                //.padding(.top, 20)
+            //.padding(.top, 20)
             
             Text("Pass Secure is designed to make your life easier. Using the latest iOS technology, Swiftdata; your login credentials are securely protected on your device. It is an offline solution, meaning that all data will be confined to your local device with no interaction with any kind of network. Additionally, Pass Secure incorporates the following security measures: \n")
                 .font(.system(size: 15))
@@ -636,9 +621,7 @@ struct AppPage: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 10)
                 .foregroundColor(.gray)
-              
-   
-         
+            
             Text("VISIT FOR MORE")
                 .font(.title2)
                 .padding(.top, 40)
@@ -660,13 +643,10 @@ struct AppPage: View {
                         .font(.title)
                         .foregroundColor(.gray)
                         .padding(.horizontal)
-                    
                 }
-             Spacer()
+                Spacer()
             }
-        
         }
-       // .padding()
     }
 }
 

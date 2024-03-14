@@ -1,12 +1,11 @@
 {
   "images" : [
     {
-      "filename" : "256.png",
+      "filename" : "icons8-password-1024_orange.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "120.png",
       "idiom" : "universal",
       "scale" : "2x"
     },

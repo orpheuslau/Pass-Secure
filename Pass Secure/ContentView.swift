@@ -147,12 +147,13 @@ struct ContentView: View {
                             BoxMsg = "Key mismatch"
                             Encrypass=""
                             ReEncrypass=""
-                            isExportpdf2 = true
+                            self.isExportpdf2 = true
                         }
                         else
                         if (Encrypass==ReEncrypass)
                         {
                             ExportContent.myshare.Encrypass = Encrypass
+                            self.isExportpdf = true
                             exportContent()
                             Encrypass=""
                             ReEncrypass=""
@@ -188,9 +189,9 @@ struct ContentView: View {
                     if (Encrypass != ReEncrypass)
                     {
                         BoxMsg = "Key mismatch"
+                        self.isExportpdf = true
                         Encrypass=""
                         ReEncrypass=""
-                        isExportpdf = true
                     }
                     else
                     if (Encrypass==ReEncrypass)
@@ -198,6 +199,7 @@ struct ContentView: View {
                         ExportContent.myshare.Encrypass = Encrypass
                         Encrypass=""
                         ReEncrypass=""
+                        self.isExportpdf = true
                         exportContent()
                         BoxMsg=""
                     }
@@ -341,7 +343,7 @@ struct ContentView: View {
         print(isExportpdf)
         if isExportpdf {
             fname = NSHomeDirectory() + "/Documents/PassSecureExport.pdf"
-            
+            print(fname)
         }
         
         do {

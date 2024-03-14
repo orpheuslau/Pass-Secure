@@ -424,7 +424,7 @@ struct ContentView: View {
         
         let now = Date()
         let useageTime = loginTime.distance(to: now) //calculate the time of use
-        if Int(useageTime) > 300 //set session time of 5 mins, in second
+        if Int(useageTime) > 3 //set session time of 5 mins, in second
         {
             showTimeOut = true //pop up the alert message
             isUnlocked = false // remove protected content and reset authentication status
@@ -602,11 +602,13 @@ struct AppPage: View {
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 100, height: 100)
                 .padding(.top, 30)
+                .foregroundColor(.red)
             
             Text("Pass Secure")
                 .font(.title)
                 .fontWeight(.bold)
-            //.padding(.top, 20)
+                .foregroundColor(Color(red: 0.85, green: 0.30, blue: 0.0))
+     
             
             Text("Pass Secure is designed to make your life easier. Using the latest iOS technology, Swiftdata; your login credentials are securely protected on your device. It is an offline solution, meaning that all data will be confined to your local device with no interaction with any kind of network. Additionally, Pass Secure incorporates the following security measures: \n")
                 .font(.system(size: 15))
@@ -629,7 +631,7 @@ struct AppPage: View {
                 .padding(.top, 40)
                 .bold()
                 .underline()
-                .foregroundColor(.black)
+                .foregroundColor(.gray)
                 .onTapGesture {
                     // Handle tap gesture to open the website URL
                     if let url = URL(string: "https://www.orpheuslau.dev") {
@@ -654,6 +656,6 @@ struct AppPage: View {
 
 struct AppPage_Previews: PreviewProvider {
     static var previews: some View {
-        AppPage()
+        AppPage().preferredColorScheme(.light)
     }
 }

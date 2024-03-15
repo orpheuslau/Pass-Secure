@@ -424,7 +424,7 @@ struct ContentView: View {
         
         let now = Date()
         let useageTime = loginTime.distance(to: now) //calculate the time of use
-        if Int(useageTime) > 3 //set session time of 5 mins, in second
+        if Int(useageTime) > 300 //set session time of 5 mins, in second
         {
             showTimeOut = true //pop up the alert message
             isUnlocked = false // remove protected content and reset authentication status

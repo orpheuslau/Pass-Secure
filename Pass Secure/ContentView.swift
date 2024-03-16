@@ -30,6 +30,7 @@ struct ContentView: View {
     @State var Encrypass:String = ""
     @State var ReEncrypass:String = ""
     @State var BoxMsg = ""
+    @State var isResetTime = false // indicate timer reset status
     
     
     init() { //configure navigation bar title style
@@ -78,6 +79,9 @@ struct ContentView: View {
                         }
                     }
                 }
+                .gesture(TapGesture().onEnded {
+                    loginTime = Date()
+                           })
                 .searchable(text: $searchtext, prompt: "Search Name")
                 .navigationTitle("Pass Secure")
                 .navigationBarTitleDisplayMode(.large)
@@ -289,7 +293,6 @@ struct ContentView: View {
         }
     }
     
-    
     func write(toFile path: String, withOptions options: [PDFDocumentWriteOption: Any]? = nil) -> Bool {
         // Create a new PDF document
         
@@ -421,7 +424,6 @@ struct ContentView: View {
     
     func calculateUsageTime() {
         guard let loginTime = loginTime else { return }
-        
         let now = Date()
         let useageTime = loginTime.distance(to: now) //calculate the time of use
         if Int(useageTime) > 300 //set session time of 5 mins, in second
@@ -610,7 +612,7 @@ struct AppPage: View {
                 .foregroundColor(Color(red: 0.85, green: 0.30, blue: 0.0))
      
             
-            Text("Pass Secure is designed to make your life easier. Using the latest iOS technology, Swiftdata; your login credentials are securely protected on your device. It is an offline solution, meaning that all data will be confined to your local device with no interaction with any kind of network. Additionally, Pass Secure incorporates the following security measures: \n")
+            Text("Pass Secure is designed to make your life easier. Using the latest iOS technology, Swiftdata and iCloudKit; your login credentials are securely protected on your device and are also seamlessly synchronized across your devices (e.g. iPhone and iPad), which are signed in with the same iCloud account. \n\nAdditionally, Pass Secure incorporates the following security measures: \n")
                 .font(.system(size: 15))
                 .lineSpacing(5)
                 .multilineTextAlignment(.leading)
@@ -623,15 +625,16 @@ struct AppPage: View {
                 .lineSpacing(10)
                 .multilineTextAlignment(.leading)
                 .padding(.horizontal, 20)
-                .padding(.top, 10)
+                //.padding(.top, 10)
                 .foregroundColor(.gray)
             
-            Text("VISIT FOR MORE")
+            Text("FIND OUT MORE")
                 .font(.title2)
                 .padding(.top, 40)
                 .bold()
-                .underline()
-                .foregroundColor(.gray)
+                //.underline()
+                //.foregroundColor(.gray)
+                .foregroundColor(Color(red: 0.85, green: 0.30, blue: 0.0))
                 .onTapGesture {
                     // Handle tap gesture to open the website URL
                     if let url = URL(string: "https://www.orpheuslau.dev") {
